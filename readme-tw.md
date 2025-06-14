@@ -37,7 +37,7 @@ conda install pytorch torchvision torchaudio cpuonly -c pytorch
 pip install -r requirements.txt
 ~~~
 
-### 環境安裝方式二：使用 pip
+### 環境安裝方式二：使用 pip (建議使用)
 ~~~
 # 創建虛擬環境
 python -m venv yolo-pcb-env
