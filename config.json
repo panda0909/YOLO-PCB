@@ -3,10 +3,10 @@
         "name": "YOLO-PCB GUI",
         "version": "1.0.0",
         "window_geometry": [
-            644,
-            3,
+            265,
+            43,
             1200,
-            800
+            855
         ],
         "theme": "default",
         "language": "zh-TW"

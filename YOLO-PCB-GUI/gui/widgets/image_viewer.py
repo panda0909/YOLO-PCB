@@ -198,6 +198,11 @@ class AnnotatedImageViewer(ImageViewer):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.annotations = []  # 標註列表
+    
+    def set_image(self, cv_image):
+        """設置圖像並清除標註"""
+        self.clear_annotations()
+        self.display_opencv_image(cv_image)
         
     def add_annotation(self, x, y, width, height, label="", color=(255, 0, 0)):
         """添加標註框"""

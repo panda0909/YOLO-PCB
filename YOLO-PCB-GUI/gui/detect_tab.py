@@ -548,15 +548,19 @@ class DetectTab(QWidget):
             if not os.path.exists(params['weights']):
                 QMessageBox.warning(self, "錯誤", "權重檔案不存在！")
                 return
-            
-            # 更新UI狀態
+              # 更新UI狀態
             self.detect_btn.setEnabled(False)
             self.stop_btn.setEnabled(True)
             self.progress_bar.setVisible(True)
-            self.progress_bar.setRange(0, 0)  # 無限進度條
-            self.progress_label.setText("檢測進行中...")
             
-            # 清除之前的日誌和圖像
+            # 如果是攝像頭檢測，使用無限進度條；否則使用確定進度條
+            if params['source'].isdigit():  # 攝像頭
+                self.progress_bar.setRange(0, 0)  # 無限進度條
+                self.progress_label.setText("攝像頭檢測中...")
+            else:
+                self.progress_bar.setRange(0, 100)  # 確定進度條
+                self.progress_label.setText("檢測進行中...")
+              # 清除之前的日誌和圖像
             self.log_text.clear()
             if hasattr(self.image_viewer, 'clear_image'):
                 self.image_viewer.clear_image()
@@ -568,17 +572,24 @@ class DetectTab(QWidget):
             
             # 嘗試使用核心檢測功能
             try:
-                from core.detector import Detector
+                from core.detector import DetectionWorker
                 
-                # 創建檢測器
-                self.detector = Detector()
+                # 創建檢測工作執行緒
+                self.detection_worker = DetectionWorker()
+                self.detection_worker.set_parameters(params)
                 
                 # 連接信號
-                self.detector.log_message.connect(self.add_log)
-                self.detector.detection_finished.connect(self.on_detection_finished)
+                self.detection_worker.log_message.connect(self.add_log)
+                self.detection_worker.detection_finished.connect(self.on_detection_finished)
+                self.detection_worker.error_occurred.connect(self.add_log)
+                self.detection_worker.frame_processed.connect(self.on_frame_processed)
+                self.detection_worker.detection_result.connect(self.on_detection_result)
+                self.detection_worker.progress_updated.connect(self.progress_bar.setValue)
                 
-                # 開始檢測
-                if self.detector.start_detection(params):
+                # 載入模型
+                if self.detection_worker.load_model(params['weights'], params.get('device', 'auto')):
+                    # 開始檢測
+                    self.detection_worker.start_detection()
                     self.detection_started.emit()
                     self.add_log("檢測已啟動")
                 else:
@@ -614,8 +625,7 @@ class DetectTab(QWidget):
             self.simulation_timer.stop()
             self.add_log("模擬檢測完成")
             self.reset_ui_state()
-            
-            # 模擬檢測結果
+              # 模擬檢測結果
             result_path = self.get_detection_params().get('output', 'runs/detect')
             self.detection_finished.emit(result_path)
         else:
@@ -626,6 +636,17 @@ class DetectTab(QWidget):
     def stop_detection(self):
         """停止檢測"""
         self.add_log("正在停止檢測...")
+        
+        # 停止檢測工作執行緒
+        if hasattr(self, 'detection_worker') and self.detection_worker:
+            self.detection_worker.stop_detection()
+            self.detection_worker = None
+            
+        # 停止模擬檢測定時器
+        if hasattr(self, 'simulation_timer'):
+            self.simulation_timer.stop()
+            
+        self.add_log("檢測已停止")
         self.reset_ui_state()
         
     def reset_ui_state(self):
