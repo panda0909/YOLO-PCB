@@ -9,9 +9,9 @@ import numpy as np
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QPushButton, QLabel, QLineEdit, QTextEdit, QGroupBox,
                              QFileDialog, QProgressBar, QComboBox, QSpinBox,
-                             QDoubleSpinBox, QCheckBox, QSlider, QMessageBox)
+                             QDoubleSpinBox, QCheckBox, QSlider, QMessageBox, QShortcut)
 from PyQt5.QtCore import Qt, pyqtSignal, QThread, pyqtSlot, QTimer
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap, QFont, QKeySequence
 import numpy as np
 
 
@@ -32,6 +32,12 @@ class DetectTab(QWidget):
         
         self.init_ui()
         self.connect_signals()
+        # ESC鍵中斷攝像頭檢測快捷鍵
+        esc_seq = QKeySequence(Qt.Key_Escape)
+        self.esc_shortcut = QShortcut(esc_seq, self)
+        self.esc_shortcut.setContext(Qt.ApplicationShortcut)  # 全局快捷鍵
+        self.esc_shortcut.activated.connect(self.on_escape_pressed)
+        self.add_log("ESC shortcut initialized")
         
     def init_ui(self):
         """初始化使用者介面"""
@@ -885,3 +891,26 @@ class DetectTab(QWidget):
                     return False
         
         return True
+    def on_escape_pressed(self):
+        """處理ESC鍵：當為攝像頭檢測且可停止時，終止檢測"""
+        # 日誌：ESC按鍵事件觸發
+        self.add_log("ESC pressed - on_escape_pressed called")
+        try:
+            mode = self.input_type_combo.currentText()
+            stop_enabled = self.stop_btn.isEnabled()
+            self.add_log(f"檢測模式: {mode}, 停止按鈕狀態: {stop_enabled}")
+            if mode == "攝像頭" and stop_enabled:
+                self.add_log("ESC觸發停止檢測")
+                self.stop_detection()
+            else:
+                self.add_log("ESC未觸發停止：非攝像頭模式或停止按鈕未啟用")
+        except Exception as e:
+            self.add_log(f"ESC按鍵處理錯誤: {e}")
+    def keyPressEvent(self, event):
+        """攔截鍵盤事件，捕捉ESC鍵中斷檢測"""
+        if event.key() == Qt.Key_Escape:
+            self.add_log("keyPressEvent: ESC key detected")
+            self.on_escape_pressed()
+            event.accept()
+        else:
+            super().keyPressEvent(event)

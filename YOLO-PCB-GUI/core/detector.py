@@ -225,6 +225,12 @@ class DetectionWorker(QThread):
                 
                 # 控制幀率
                 self.msleep(33)  # ~30 FPS
+
+                # 檢測ESC或Q鍵以中斷攝像頭檢測
+                if cv2.waitKey(1) & 0xFF in (27, ord('q'), ord('Q')):
+                    self.log_message.emit("用戶中斷攝像頭檢測")
+                    self.running = False
+                    break
             
             if self.camera:
                 self.camera.release()

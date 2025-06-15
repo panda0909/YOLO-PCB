@@ -10,7 +10,7 @@ YOLO-PCB GUI 應用程式的主視窗
 
 from PyQt5.QtWidgets import (QMainWindow, QTabWidget, QMenuBar, QStatusBar, 
                             QAction, QMessageBox, QVBoxLayout, QWidget,
-                            QToolBar, QLabel, QProgressBar, QHBoxLayout)
+                            QToolBar, QLabel, QProgressBar, QHBoxLayout, QShortcut)
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QKeySequence
 # 暫時註解掉，稍後動態導入
@@ -57,6 +57,10 @@ class MainWindow(QMainWindow):
         self.init_toolbar()
         self.init_statusbar()
         self.load_settings()
+        # 全局 ESC 鍵快捷鍵，用於中斷檢測
+        esc_shortcut = QShortcut(QKeySequence(Qt.Key_Escape), self)
+        esc_shortcut.setContext(Qt.ApplicationShortcut)
+        esc_shortcut.activated.connect(self.on_global_escape)
         
         logger.info("主視窗初始化完成")
     
@@ -169,6 +173,19 @@ class MainWindow(QMainWindow):
         self.show_status_message(f"檢測完成 - {result_path}")
         if self.progress_bar:
             self.progress_bar.setVisible(False)
+        # 重置 ESC 快捷鍵提示
+        self.statusBar().clearMessage()
+    
+    def on_global_escape(self):
+        logger.info("全局 ESC 鍵被觸發")
+        """全局 ESC 處理：如果正在攝像頭檢測則停止"""
+        try:
+            if self.detect_tab:
+                # 停止檢測
+                self.show_status_message("ESC 停止檢測", 3000)
+                self.detect_tab.stop_detection()
+        except Exception as e:
+            logger.error(f"ESC 全局處理錯誤: {e}")
     
     def on_test_started(self):
         """測試開始處理"""
