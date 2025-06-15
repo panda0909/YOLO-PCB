@@ -35,17 +35,39 @@ class DetectTab(QWidget):
         
     def init_ui(self):
         """初始化使用者介面"""
-        layout = QVBoxLayout(self)
-          # 創建主要群組
-        self.create_input_group(layout)
-        self.create_model_group(layout)
-        self.create_detection_group(layout)
-        self.create_output_group(layout)
-        self.create_image_display_group(layout)
-        self.create_control_group(layout)
+        # 創建主要水平布局
+        main_layout = QHBoxLayout(self)
+          # 創建左側控制面板（40%寬度）
+        left_panel = QWidget()
+        left_panel.setMaximumWidth(650)  # 增加左側最大寬度
+        left_panel.setMinimumWidth(500)  # 設置最小寬度
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(10, 10, 10, 10)
+        left_layout.setSpacing(8)  # 控制群組間距
         
-        # 設置佈局
-        layout.addStretch()
+        # 在左側面板添加控制群組
+        self.create_input_group(left_layout)
+        self.create_model_group(left_layout)
+        self.create_detection_group(left_layout)
+        self.create_output_group(left_layout)
+        self.create_control_group(left_layout)
+        
+        left_layout.addStretch()
+          # 創建右側圖像顯示面板（60%寬度）
+        right_panel = QWidget()
+        right_panel.setMinimumWidth(800)  # 設置最小寬度確保圖像顯示空間
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(10, 10, 10, 10)
+        right_layout.setSpacing(5)
+        
+        self.create_image_display_group(right_layout)
+        
+        # 將左右面板添加到主布局
+        main_layout.addWidget(left_panel, 2)  # 左側占2份
+        main_layout.addWidget(right_panel, 3)  # 右側占3份（60%）
+        
+        # 設置布局間距
+        main_layout.setSpacing(10)
         
     def create_input_group(self, parent_layout):
         """創建輸入來源群組"""
@@ -260,20 +282,19 @@ class DetectTab(QWidget):
         self.progress_label = QLabel("就緒")
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        
-        # 日誌輸出
+          # 日誌輸出 - 調整高度讓左側更緊湊
         self.log_text = QTextEdit()
-        self.log_text.setMaximumHeight(150)
+        self.log_text.setMaximumHeight(120)  # 減少日誌區域高度
+        self.log_text.setMinimumHeight(80)   # 設置最小高度
         self.log_text.setPlaceholderText("檢測日誌將顯示在此...")
         font = QFont("Consolas", 9)
-        self.log_text.setFont(font)        
+        self.log_text.setFont(font)
         layout.addLayout(button_layout)
         layout.addWidget(self.progress_label)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.log_text)
         
         parent_layout.addWidget(group)
-        
     def create_image_display_group(self, parent_layout):
         """創建圖像顯示群組"""
         group = QGroupBox("檢測結果顯示")
@@ -284,7 +305,7 @@ class DetectTab(QWidget):
         
         # 檢測統計
         self.detection_stats_label = QLabel("等待檢測...")
-        self.detection_stats_label.setStyleSheet("font-weight: bold; color: #0066cc;")
+        self.detection_stats_label.setStyleSheet("font-weight: bold; color: #0066cc; font-size: 14px;")
         stats_layout.addWidget(QLabel("檢測結果:"))
         stats_layout.addWidget(self.detection_stats_label)
         
@@ -292,17 +313,20 @@ class DetectTab(QWidget):
         
         # 處理狀態
         self.processing_status_label = QLabel("就緒")
-        self.processing_status_label.setStyleSheet("color: green;")
+        self.processing_status_label.setStyleSheet("color: green; font-size: 14px;")
         stats_layout.addWidget(QLabel("狀態:"))
         stats_layout.addWidget(self.processing_status_label)
         
         layout.addLayout(stats_layout)
         
-        # 創建圖像查看器
+        # 創建圖像查看器 - 佔用更多空間
         try:
             from gui.widgets.image_viewer import AnnotatedImageViewer
             self.image_viewer = AnnotatedImageViewer()
-            self.image_viewer.setMinimumSize(640, 480)
+            # 設置更大的最小尺寸
+            self.image_viewer.setMinimumSize(800, 600)
+            self.image_viewer.setSizePolicy(self.image_viewer.sizePolicy().Expanding, 
+                                          self.image_viewer.sizePolicy().Expanding)
             
             # 連接圖像查看器的信號
             if hasattr(self.image_viewer, 'image_clicked'):
@@ -313,13 +337,15 @@ class DetectTab(QWidget):
         except ImportError:
             # 如果無法導入自定義查看器，使用基本標籤
             self.image_viewer = QLabel()
-            self.image_viewer.setMinimumSize(640, 480)
-            self.image_viewer.setStyleSheet("border: 1px solid gray; background-color: #f5f5f5;")
+            self.image_viewer.setMinimumSize(800, 600)
+            self.image_viewer.setSizePolicy(self.image_viewer.sizePolicy().Expanding, 
+                                          self.image_viewer.sizePolicy().Expanding)
+            self.image_viewer.setStyleSheet("border: 2px solid #ccc; background-color: #f8f8f8; border-radius: 5px;")
             self.image_viewer.setAlignment(Qt.AlignCenter)
-            self.image_viewer.setText("圖像顯示組件載入失敗\n將使用基本顯示功能")
+            self.image_viewer.setText("檢測結果將顯示在此\n\n請選擇輸入來源並開始檢測")
             layout.addWidget(self.image_viewer)
         
-        # 添加圖像控制面板
+        # 添加圖像控制面板 - 更緊湊的佈局
         control_layout = QHBoxLayout()
         
         # 顯示控制
@@ -339,6 +365,23 @@ class DetectTab(QWidget):
         self.save_image_btn = QPushButton("保存當前圖像")
         self.save_image_btn.setEnabled(False)
         self.save_image_btn.clicked.connect(self.save_current_image)
+        self.save_image_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                padding: 5px 15px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
+            }
+        """)
         
         control_layout.addWidget(self.save_image_btn)
         
