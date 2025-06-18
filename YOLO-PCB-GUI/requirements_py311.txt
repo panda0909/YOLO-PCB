@@ -1,0 +1,91 @@
+# YOLO-PCB GUI 應用程式依賴 (Python 3.11 優化版本)
+# Python 版本要求: >=3.11.0
+
+# 基礎GUI框架
+PyQt5>=5.15.7
+PyQt5-Qt5>=5.15.2
+
+# 深度學習框架 (Python 3.11 相容版本)
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# 影片處理
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+Pillow>=10.0.0
+
+# 數值計算和資料處理
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 配置檔案處理
+PyYAML>=6.0.1
+
+# 進度條和工具
+tqdm>=4.65.0
+
+# 科學計算
+scipy>=1.11.0
+
+# 系統監控
+psutil>=5.9.0
+
+# 測試框架（開發用）
+pytest>=7.4.0
+pytest-qt>=4.3.0
+
+# 程式碼格式化（開發用）
+black>=23.0.0
+pylint>=2.17.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# 打包工具（部署用）
+pyinstaller>=5.13.0
+cx-Freeze>=6.15.0
+
+# 額外的機器學習工具
+scikit-learn>=1.3.0
+plotly>=5.15.0
+
+# YOLO相關
+ultralytics>=8.0.0
+yolov5>=7.0.0
+
+# HTTP 請求
+requests>=2.31.0
+urllib3>=2.0.0
+
+# 日誌和除錯
+loguru>=0.7.0
+
+# 檔案系統操作
+watchdog>=3.0.0
+
+# 影片編解碼
+imageio>=2.31.0
+imageio-ffmpeg>=0.4.8
+
+# 資料序列化
+pickle-mixin>=1.0.2
+
+# 記憶體和效能監控
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+
+# 多執行緒和平行處理
+joblib>=1.3.0
+
+# 網路和通訊
+websockets>=11.0.0
+
+# 開發工具
+pre-commit>=3.3.0
+mypy>=1.5.0
+
+# 其他實用工具（Python 3.11 中某些已內建，但保留向後相容）
+pathlib2>=2.3.7; python_version<"3.4"
+typing-extensions>=4.7.0
